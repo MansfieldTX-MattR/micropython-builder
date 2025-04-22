@@ -46,7 +46,10 @@ jobs:
           import sys
           port = os.environ.get('MPY_PORT')
           board = os.environ.get('MPY_BOARD')
-          print(f"{port}-{board.lower()}")
+          image_name = f'{port}_{board}'.lower()
+          env_filename = os.getenv('GITHUB_ENV')
+          with open(env_filename, 'a') as f:
+              f.write(f'IMAGE_NAME={image_name}\n')
         env:
           MPY_PORT: ${{ matrix.mpy-port }}
           MPY_BOARD: ${{ matrix.mpy-board }}
@@ -60,7 +63,7 @@ jobs:
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
           target: rp2build
-          tags: ${{ env.DOCKERHUB_REPO }}/${{ steps.get_image_name.outputs.image_name }}:test
+          tags: ${{ env.DOCKERHUB_REPO }}/${{ steps.get_image_name.outputs.IMAGE_NAME }}:test
 
       -
         name: Build firmware
@@ -69,7 +72,7 @@ jobs:
           ./scripts/build_firmware.py --image $IMAGE_NAME $BUILD_DIR
         env:
           BUILD_DIR: build/${{ matrix.mpy-port }}_${{ matrix.mpy-board }}
-          IMAGE_NAME: ${{ env.DOCKERHUB_REPO }}/${{ steps.get_image_name.outputs.image_name }}:test
+          IMAGE_NAME: ${{ env.DOCKERHUB_REPO }}/${{ steps.get_image_name.outputs.IMAGE_NAME }}:test
 
       -
         name: Build and push
@@ -81,4 +84,4 @@ jobs:
             MPY_BOARD=${{ matrix.mpy-board }}
           target: rp2build
           push: true
-          tags: ${{ env.DOCKERHUB_REPO }}/${{ steps.get_image_name.outputs.image_name }}:latest
+          tags: ${{ env.DOCKERHUB_REPO }}/${{ steps.get_image_name.outputs.IMAGE_NAME }}:latest
