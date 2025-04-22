@@ -23,9 +23,10 @@ def build_image(board: str, target: str = 'rp2build') -> str:
     raise RuntimeError("Failed to find built image name in output.")
 
 
-def build_firmware(board: str, dest_dir: Path):
-    image_name = build_image(board)
-    print(f'Using Docker image: {image_name}')
+def build_firmware(board: str, dest_dir: Path, image_name: str|None = None) -> None:
+    if image_name is None:
+        image_name = build_image(board)
+        print(f'Using Docker image: {image_name}')
     container_build_dir = '/home/app/build'
     mount_args = f'--mount type=bind,source={dest_dir},target={container_build_dir}'
     env_args = f'--env FIRMWARE_DEST={container_build_dir}'
@@ -40,6 +41,7 @@ def main():
     p = argparse.ArgumentParser(description="Build firmware for a specific board.")
     p.add_argument('dest', type=Path, help='The destination directory to save the firmware.')
     p.add_argument('--board', type=str, default='RPI_PICO_W', help='The board to build firmware for.')
+    p.add_argument('--image', type=str, default=None, help='The Docker image to use for building firmware.')
     args = p.parse_args()
     args.dest = args.dest.resolve()
     assert args.dest.is_dir(), f"Destination {args.dest} is not a directory."
@@ -50,7 +52,7 @@ def main():
             continue
         print(f"Found file: {p}")
         raise RuntimeError(f"Destination {args.dest} is not empty. Please remove the contents before building.")
-    build_firmware(args.board, args.dest)
+    build_firmware(args.board, args.dest, args.image)
 
 
 if __name__ == '__main__':
