@@ -34,6 +34,8 @@ def build_firmware(board: str, dest_dir: Path, image_name: str|None = None) -> N
     print(f"Building firmware for {board}...")
     print(f"Command: {cmd}")
     subprocess.run(shlex.split(cmd), check=True)
+    firmware_file = dest_dir / 'firmware.uf2'
+    assert firmware_file.is_file(), f"Firmware file {firmware_file} not found."
     print(f"Firmware for {board} built successfully and saved to {dest_dir}/firmware.")
 
 
