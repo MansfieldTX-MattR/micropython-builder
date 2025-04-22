@@ -40,19 +40,11 @@ jobs:
 
       -
         name: Get image name
-        shell: python
         run: |
-          import os
-          import sys
-          port = os.environ.get('MPY_PORT')
-          board = os.environ.get('MPY_BOARD')
-          image_name = f'{port}_{board}'.lower()
-          env_filename = os.getenv('GITHUB_ENV')
-          with open(env_filename, 'a') as f:
-              f.write(f'IMAGE_NAME={image_name}\n')
+          echo "IMAGE_NAME=${IMAGE_NAME_UPPER,,}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${IMAGE_NAME_UPPER,,}" >> $GITHUB_OUTPUT
         env:
-          MPY_PORT: ${{ matrix.mpy-port }}
-          MPY_BOARD: ${{ matrix.mpy-board }}
+          IMAGE_NAME_UPPER: ${{ matrix.mpy-port }}_${{ matrix.mpy-board }}
         id: get_image_name
 
       - name: Build and export to Docker
