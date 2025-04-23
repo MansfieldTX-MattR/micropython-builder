@@ -34,6 +34,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -71,5 +75,6 @@ jobs:
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
           target: rp2
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}:latest-${{ matrix.image-name }}
