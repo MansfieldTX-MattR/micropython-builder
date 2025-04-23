@@ -107,10 +107,6 @@ ENV PATH="${PATH}:${PROJECT_ROOT}/mpy-cross/build:${PROJECT_ROOT}/tools"
 COPY --chmod=755 ./scripts/container/write_build_metadata.py ${HOME}/.local/bin/
 COPY --chmod=755 ./scripts/container/fw_build.sh ${HOME}/.local/bin/
 
-
-# Build the firmware
-FROM rp2 AS rp2build
-
 ENV FIRMWARE_DEST="${HOME}/firmware"
 
 ENTRYPOINT ["fw_build.sh"]

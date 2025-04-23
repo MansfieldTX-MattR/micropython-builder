@@ -54,7 +54,7 @@ jobs:
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
-          target: rp2build
+          target: rp2
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}_${{ steps.get_image_name.outputs.IMAGE_NAME }}:test
 
       -
@@ -73,6 +73,6 @@ jobs:
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
-          target: rp2build
+          target: rp2
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}_${{ steps.get_image_name.outputs.IMAGE_NAME }}:latest
