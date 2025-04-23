@@ -12,6 +12,22 @@ RUN apk add --no-cache \
     shadow
 
 
+# Add a helper script for parallel make
+COPY --chmod=755 <<EOT /usr/local/bin/make-with-opts
+#!/usr/bin/env sh
+set -ex
+if which nproc > /dev/null; then
+    NCPU="\$(nproc)"
+else
+    NCPU="\$(sysctl -n hw.ncpu)"
+fi
+make -j \$NCPU "\$@"
+EOT
+
+
+COPY --chmod=755 ./scripts/container/write_build_metadata.py /usr/local/bin/
+COPY --chmod=755 ./scripts/container/fw_build.sh /usr/local/bin/
+
 ENV HOME=/home/app
 
 RUN useradd -ms /bin/sh -u 1001 app
@@ -28,6 +44,9 @@ ENV PROJECT_ROOT=${HOME}/micropython
 # Clone the repository
 RUN git clone --depth 1 --branch ${GIT_CLONE_REF} --single-branch ${GIT_REPO_URL} ${PROJECT_ROOT}
 WORKDIR ${PROJECT_ROOT}
+
+
+ENV PATH="${PATH}:${PROJECT_ROOT}/mpy-cross/build:${PROJECT_ROOT}/tools"
 
 # Build the unix port
 SHELL ["/bin/bash", "-c"]
@@ -54,20 +73,6 @@ RUN apk add --no-cache \
     libc6-compat \
     libstdc++ \
     newlib-arm-none-eabi
-
-
-# Add a helper script for parallel make
-COPY --chmod=755 <<EOT /usr/local/bin/make-with-opts
-#!/usr/bin/env sh
-set -ex
-if which nproc > /dev/null; then
-    NCPU="\$(nproc)"
-else
-    NCPU="\$(sysctl -n hw.ncpu)"
-fi
-make -j \$NCPU "\$@"
-EOT
-
 
 USER app
 
@@ -102,10 +107,6 @@ RUN make-with-opts -C mpy-cross
 RUN make-with-opts -C ports/${MPY_PORT} submodules
 RUN make-with-opts -C ports/${MPY_PORT} BOARD=${MPY_BOARD} submodules
 
-ENV PATH="${PATH}:${PROJECT_ROOT}/mpy-cross/build:${PROJECT_ROOT}/tools"
-
-COPY --chmod=755 ./scripts/container/write_build_metadata.py ${HOME}/.local/bin/
-COPY --chmod=755 ./scripts/container/fw_build.sh ${HOME}/.local/bin/
 
 ENV FIRMWARE_DEST="${HOME}/firmware"
 
