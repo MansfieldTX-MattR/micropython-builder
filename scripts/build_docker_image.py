@@ -5,22 +5,16 @@ import shlex
 import argparse
 
 
-def build_unix_image(target: str, image_name: str|None):
-    if image_name is None:
-        image_name = f'micropython-builder/unix-{target}'.lower()
+def build_unix_image(target: str, image_name: str):
     cmd = f'docker build -t {image_name} --target {target} .'
     print(cmd)
     subprocess.run(shlex.split(cmd), check=True)
-    return image_name
 
 
-def build_rp2_image(board: str, target: str, image_name: str|None):
-    if image_name is None:
-        image_name = f'micropython-builder/rp2-{board}-{target}'.lower()
+def build_rp2_image(board: str, target: str, image_name: str):
     cmd = f'docker build -t {image_name} --build-arg MPY_BOARD={board} --target {target} .'
     print(cmd)
     subprocess.run(shlex.split(cmd), check=True)
-    return image_name
 
 
 def main():
@@ -28,7 +22,7 @@ def main():
     p.add_argument('--port', type=str, default='rp2', choices=['rp2', 'unix'])
     p.add_argument('--board', type=str, default='RPI_PICO_W')
     p.add_argument('--target', type=str, default='rp2build', choices=['rp2', 'rp2build', 'rp2test'])
-    p.add_argument('--image-name', type=str, default=None)
+    p.add_argument('--image-name', type=str, required=True)
     args = p.parse_args()
     if args.port == 'unix':
         image_name = build_unix_image(args.target, args.image_name)
