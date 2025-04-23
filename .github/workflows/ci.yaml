@@ -49,6 +49,7 @@ jobs:
 
       - name: Build and export to Docker
         uses: docker/build-push-action@v6
+        id: build-test
         with:
           load: true
           build-args: |
@@ -64,7 +65,7 @@ jobs:
           ./scripts/build_firmware.py --image $IMAGE_NAME $BUILD_DIR
         env:
           BUILD_DIR: build/${{ matrix.mpy-port }}_${{ matrix.mpy-board }}
-          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}_${{ steps.get_image_name.outputs.IMAGE_NAME }}:test
+          IMAGE_NAME: ${{ steps.build-test.outputs.imageid }}
 
       -
         name: Build and push
