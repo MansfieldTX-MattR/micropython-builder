@@ -52,7 +52,7 @@ jobs:
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
           target: rp2
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}_${{ matrix.image-name }}:test
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}:test-${{ matrix.image-name }}
 
       -
         name: Build firmware
@@ -72,4 +72,4 @@ jobs:
             MPY_BOARD=${{ matrix.mpy-board }}
           target: rp2
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}_${{ matrix.image-name }}:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}:latest-${{ matrix.image-name }}
