@@ -6,6 +6,7 @@ on:
 
 env:
   GH_REPO: ${{ github.repository }}
+  MICROPYTHON_REPO: https://github.com/micropython/micropython.git
   DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/micropython-builder
 
 jobs:
@@ -47,6 +48,14 @@ jobs:
         with:
           python-version: 3.13
 
+      -
+        name: Get latest micropython version
+        id: get-latest-mpy
+        run: |
+          ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > latest_tag.txt
+          echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_ENV
+          echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_OUTPUT
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v6
         id: build-test
@@ -55,6 +64,8 @@ jobs:
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
+            MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
+            MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
           target: rp2
           tags: ${{ env.DOCKERHUB_REPO }}:test-${{ matrix.image-name }}
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache
@@ -76,6 +87,8 @@ jobs:
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
+            MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
+            MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
           target: rp2
           platforms: linux/amd64,linux/arm64
           push: true
