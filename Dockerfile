@@ -37,8 +37,13 @@ RUN chown -R app:app ${HOME}
 USER app
 WORKDIR ${HOME}
 
-ENV GIT_CLONE_REF="master"
-ENV GIT_REPO_URL="https://github.com/micropython/micropython.git"
+ARG GIT_CLONE_REF="master"
+ARG GIT_REPO_URL="https://github.com/micropython/micropython.git"
+ENV GIT_CLONE_REF=${GIT_CLONE_REF}
+ENV GIT_REPO_URL=${GIT_REPO_URL}
+LABEL micropython_version=${GIT_CLONE_REF}
+LABEL micropython_repo=${GIT_REPO_URL}
+
 ENV PROJECT_ROOT=${HOME}/micropython
 
 # Clone the repository
