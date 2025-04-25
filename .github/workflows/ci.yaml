@@ -92,6 +92,8 @@ jobs:
           target: rp2
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.DOCKERHUB_REPO }}:latest-${{ matrix.image-name }}
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:latest-${{ matrix.image-name }}
+            ${{ env.DOCKERHUB_REPO }}:${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}-${{ matrix.image-name }}
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache,mode=max
