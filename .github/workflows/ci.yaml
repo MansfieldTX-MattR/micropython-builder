@@ -60,7 +60,7 @@ jobs:
         with:
           load: true
           tags: ${{ env.DOCKERHUB_REPO }}:prebuild-${{ matrix.platform-arch }}-${{ matrix.image-name }}
-          platforms: linux/{{ matrix.platform-arch}}
+          platforms: linux/${{ matrix.platform-arch }}
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
             MPY_BOARD=${{ matrix.mpy-board }}
