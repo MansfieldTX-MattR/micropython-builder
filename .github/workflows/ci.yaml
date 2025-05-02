@@ -16,11 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - mpy-port: unix
+            mpy-board: standard
+            image-target: base
+            image-name: unix
           - mpy-port: rp2
             mpy-board: RPI_PICO
+            image-target: rp2
             image-name: rp2_rpi_pico
           - mpy-port: rp2
             mpy-board: RPI_PICO_W
+            image-target: rp2
             image-name: rp2_rpi_pico_w
     steps:
       -
@@ -80,13 +86,14 @@ jobs:
             MPY_BOARD=${{ matrix.mpy-board }}
             MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
             MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
-          target: rp2
+          target: ${{ matrix.image-target }}
           tags: ${{ env.DOCKERHUB_REPO }}:test-${{ matrix.image-name }}
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache,mode=max
 
       -
         name: Build firmware
+        if: ${{ matrix.mpy-port != 'unix' }}
         run: |
           mkdir -p $BUILD_DIR
           ./scripts/build_firmware.py --image $IMAGE_NAME $BUILD_DIR
@@ -103,7 +110,7 @@ jobs:
             MPY_BOARD=${{ matrix.mpy-board }}
             MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
             MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
-          target: rp2
+          target: ${{ matrix.image-target }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
