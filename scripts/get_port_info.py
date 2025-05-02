@@ -104,9 +104,9 @@ def iter_boards(repo: GitRepo, port: Path) -> Iterator[Path]:
     yield from repo.ls_dirs(board_dir)
 
 
-def get_port_info() -> dict[Port, list[Board]]:
+def get_port_info(branch_ref: str = MPY_CLONE_REF) -> dict[Port, list[Board]]:
     port_info: dict[Port, list[Board]] = {}
-    repo = GitRepo(MPY_CLONE_URL)
+    repo = GitRepo(MPY_CLONE_URL, branch_ref=branch_ref)
     with repo:
         for port in iter_ports(repo):
             port_name = Port(port.name)
@@ -118,15 +118,36 @@ def get_port_info() -> dict[Port, list[Board]]:
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument(
+        '--ref',
+        type=str,
+        default=MPY_CLONE_REF,
+        help='Git reference to clone',
+    )
+    p.add_argument(
+        '--latest',
+        action='store_true',
+        help='Use the latest git tag',
+    )
+    p.add_argument(
         '-o', '--output',
         type=Path,
         default=INFO_FILE,
         help='Output file',
     )
     args = p.parse_args()
+    if args.latest:
+        repo_script = HERE / 'latest_repo_tag.py'
+        cmd_str = f'{repo_script} --repo {MPY_CLONE_URL}'
+        proc = subprocess.run(shlex.split(cmd_str), capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise RuntimeError(f"Failed to get latest tag: {proc.stderr}")
+        args.ref = proc.stdout.strip()
+        assert args.ref, "Latest tag is empty"
+
     args.output = Path(args.output)
-    port_info = get_port_info()
+    port_info = get_port_info(branch_ref=args.ref)
     args.output.write_text(json.dumps(port_info, indent=2))
+    print(f"Port info written to {args.output}")
 
 
 
