@@ -57,6 +57,9 @@ ENV PATH="${PATH}:${PROJECT_ROOT}/mpy-cross/build:${PROJECT_ROOT}/tools"
 SHELL ["/bin/bash", "-c"]
 RUN source tools/ci.sh && ci_unix_standard_build
 
+FROM base AS unix
+
+
 
 FROM base AS unix_tests
 
