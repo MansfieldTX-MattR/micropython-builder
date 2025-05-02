@@ -70,10 +70,6 @@ jobs:
             latest=true
             suffix=-${{ matrix.image-name }},onlatest=true
 
-      - name: Show meta
-        run: |
-          echo "Tags: ${{ steps.meta.outputs.tags }}"
-          echo "Labels: ${{ steps.meta.outputs.labels }}"
 
       - name: Build and export to Docker
         uses: docker/build-push-action@v6
