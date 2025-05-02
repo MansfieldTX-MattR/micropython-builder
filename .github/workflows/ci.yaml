@@ -76,31 +76,6 @@ jobs:
             suffix=-${{ matrix.image-name }},onlatest=true
 
 
-      - name: Build and export to Docker
-        uses: docker/build-push-action@v6
-        id: build-test
-        with:
-          load: true
-          build-args: |
-            MPY_PORT=${{ matrix.mpy-port }}
-            MPY_BOARD=${{ matrix.mpy-board }}
-            MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
-            MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
-          target: ${{ matrix.image-target }}
-          tags: ${{ env.DOCKERHUB_REPO }}:test-${{ matrix.image-name }}
-          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache,mode=max
-
-      -
-        name: Build firmware
-        if: ${{ matrix.mpy-port != 'unix' }}
-        run: |
-          mkdir -p $BUILD_DIR
-          ./scripts/build_firmware.py --image $IMAGE_NAME $BUILD_DIR
-        env:
-          BUILD_DIR: build/${{ matrix.mpy-port }}_${{ matrix.mpy-board }}
-          IMAGE_NAME: ${{ steps.build-test.outputs.imageid }}
-
       -
         name: Build and push
         uses: docker/build-push-action@v6
