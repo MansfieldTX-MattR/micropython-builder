@@ -104,13 +104,19 @@ WORKDIR ${PROJECT_ROOT}
 
 FROM rp2_base AS rp2
 
-ARG MPY_BOARD='RPI_PICO_W'
-ENV MPY_BOARD=${MPY_BOARD}
-
 # Setup rp2 submodules
 RUN make-with-opts -C mpy-cross
 RUN make-with-opts -C ports/${MPY_PORT} submodules
-RUN make-with-opts -C ports/${MPY_PORT} BOARD=${MPY_BOARD} submodules
+
+RUN <<EOT bash
+set -ex
+cd ${PROJECT_ROOT}/ports/${MPY_PORT}/boards
+for dir in *; do
+    if [ -d "\$dir" ]; then
+        make-with-opts -C ../ BOARD=\$dir submodules
+    fi
+done
+EOT
 
 
 ENV FIRMWARE_DEST="${HOME}/firmware"
