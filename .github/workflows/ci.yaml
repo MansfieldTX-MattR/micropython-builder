@@ -18,16 +18,12 @@ jobs:
         include:
           - mpy-port: unix
             mpy-board: standard
-            image-target: base
+            image-target: unix
             image-name: unix
           - mpy-port: rp2
-            mpy-board: RPI_PICO
             image-target: rp2
-            image-name: rp2_rpi_pico
-          - mpy-port: rp2
-            mpy-board: RPI_PICO_W
-            image-target: rp2
-            image-name: rp2_rpi_pico_w
+            image-name: rp2
+
     steps:
       -
         name: Checkout
@@ -85,9 +81,10 @@ jobs:
         with:
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
-            MPY_BOARD=${{ matrix.mpy-board }}
             MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
             MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
+          context: .
+          file: Dockerfile
           target: ${{ matrix.image-target }}
           platforms: linux/amd64,linux/arm64
           push: true
