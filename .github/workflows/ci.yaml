@@ -56,6 +56,25 @@ jobs:
           echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_ENV
           echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_OUTPUT
 
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKERHUB_REPO }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
+            type=sha
+          flavor: |
+            latest=true
+            suffix=-${{ matrix.image-name }},onlatest=true
+
+      - name: Show meta
+        run: |
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Labels: ${{ steps.meta.outputs.labels }}"
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v6
         id: build-test
