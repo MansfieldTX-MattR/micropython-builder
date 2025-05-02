@@ -63,7 +63,6 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_REPO }}
           tags: |
-            type=ref,event=branch
             type=semver,pattern={{version}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
             type=sha
           flavor: |
@@ -107,8 +106,7 @@ jobs:
           target: rp2
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ env.DOCKERHUB_REPO }}:latest-${{ matrix.image-name }}
-            ${{ env.DOCKERHUB_REPO }}:${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}-${{ matrix.image-name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache,mode=max
