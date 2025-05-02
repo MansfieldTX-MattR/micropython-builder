@@ -70,6 +70,7 @@ jobs:
           images: ${{ env.DOCKERHUB_REPO }}
           tags: |
             type=semver,pattern={{version}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
             type=sha
           flavor: |
             latest=true
