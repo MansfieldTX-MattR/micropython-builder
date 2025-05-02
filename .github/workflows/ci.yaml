@@ -74,6 +74,8 @@ jobs:
           flavor: |
             latest=true
             suffix=-${{ matrix.image-name }},onlatest=true
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
 
       -
