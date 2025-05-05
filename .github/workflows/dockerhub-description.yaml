@@ -7,6 +7,9 @@ on:
       - README.md
       - .github/workflows/dockerhub-description.yaml
 
+env:
+    DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/micropython-builder
+
 
 jobs:
   dockerHubDescription:
@@ -19,5 +22,6 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+        repository: ${{ env.DOCKERHUB_REPO }}
         short-description: ${{ github.event.repository.description }}
         enable-url-completion: true
