@@ -7,29 +7,41 @@ from pathlib import Path
 
 
 
-def build_image(board: str, target: str = 'rp2build') -> str:
-    cmd = f'./scripts/build_docker_image.py --board {board} --target {target}'
-    print(f"Building Docker image for {board} with target {target}...")
-    proc = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, text=True)
+def build_image(port: str, target: str|None = None) -> str:
+    cmd = f'./scripts/build_docker_image.py --port {port} --quiet'
+    print(f"Building Docker image for target {target}...")
+    proc = subprocess.run(
+        shlex.split(cmd),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    )
     if proc.returncode != 0:
-        print(f"Error building Docker image: {proc.stderr}")
-        raise RuntimeError(f"Failed to build Docker image for {board} with target {target}")
-    lines = proc.stdout.splitlines()
-    for line in lines:
-        line = line.strip()
-        if line.startswith('Built image: '):
-            image_name = line.split(' ')[-1]
-            return image_name
-    raise RuntimeError("Failed to find built image name in output.")
+        print(f"Error building Docker image:\n{proc.stderr}\n")
+        raise RuntimeError(f"Failed to build Docker image for target {target}")
+    image_id = proc.stdout.strip()
+    assert len(image_id), "Image ID is empty"
+    return image_id
 
 
-def build_firmware(board: str, dest_dir: Path, image_name: str|None = None) -> None:
+def build_firmware(
+    port: str,
+    board: str,
+    dest_dir: Path,
+    image_name: str|None = None,
+    **extra_build_meta: str
+) -> None:
     if image_name is None:
-        image_name = build_image(board)
+        image_name = build_image(port=port)
         print(f'Using Docker image: {image_name}')
     container_build_dir = '/home/app/build'
     mount_args = f'--mount type=bind,source={dest_dir},target={container_build_dir}'
-    env_args = f'--env FIRMWARE_DEST={container_build_dir}'
+    env_args = [
+        f'--env FIRMWARE_DEST={container_build_dir}',
+        f'--env MPY_BOARD={board}',
+    ]
+    if extra_build_meta:
+        meta_str = ','.join(f'{k}={v}' for k, v in extra_build_meta.items())
+        env_args.append(f'--env EXTRA_BUILD_META={meta_str}')
+    env_args = ' '.join(env_args)
     cmd = f'docker run --rm {mount_args} {env_args} {image_name}'
     print(f"Building firmware for {board}...")
     print(f"Command: {cmd}")
@@ -42,6 +54,7 @@ def build_firmware(board: str, dest_dir: Path, image_name: str|None = None) -> N
 def main():
     p = argparse.ArgumentParser(description="Build firmware for a specific board.")
     p.add_argument('dest', type=Path, help='The destination directory to save the firmware.')
+    p.add_argument('--port', type=str, default='rp2', help='The port to build firmware for.')
     p.add_argument('--board', type=str, default='RPI_PICO_W', help='The board to build firmware for.')
     p.add_argument('--image', type=str, default=None, help='The Docker image to use for building firmware.')
     args = p.parse_args()
@@ -54,7 +67,10 @@ def main():
             continue
         print(f"Found file: {p}")
         raise RuntimeError(f"Destination {args.dest} is not empty. Please remove the contents before building.")
-    build_firmware(args.board, args.dest, args.image)
+    build_firmware(
+        port=args.port, board=args.board,
+        dest_dir=args.dest, image_name=args.image
+    )
 
 
 if __name__ == '__main__':

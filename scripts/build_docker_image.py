@@ -27,6 +27,7 @@ def build_port_image(
     port: str,
     image_name: str|None,
     target: str|None = None,
+    quiet: bool = False,
 ) -> str:
     if target is None:
         target = port
@@ -35,6 +36,8 @@ def build_port_image(
     else:
         image_name = ''
     cmd = f'docker build {image_name} --target {target} .'
+    if not quiet:
+        print(cmd)
     pr = subprocess.run(
         shlex.split(cmd),
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
@@ -76,12 +79,17 @@ def main():
     p.add_argument('--port', type=str, default='rp2', choices=port_info.keys())
     p.add_argument('--target', type=str)
     p.add_argument('--image-name', type=str, default=None)
+    p.add_argument('-q', '--quiet', action='store_true', help='Suppress output')
     args = p.parse_args()
     image_id = build_port_image(
         port=args.port, image_name=args.image_name, target=args.target,
+        quiet=args.quiet,
     )
-    print(f'Built image: {args.image_name}')
-    print(f'Image ID: {image_id}')
+    if args.quiet:
+        print(image_id)
+    else:
+        print(f'Built image: {args.image_name}')
+        print(f'Image ID: {image_id}')
 
 
 if __name__ == '__main__':
