@@ -23,17 +23,21 @@ def get_port_info() -> dict[str, list[str]]:
     return _port_info
 
 
-def build_unix_image(target: str, image_name: str):
-    cmd = f'docker build -t {image_name} --target {target} .'
+def build_port_image(
+    port: str,
+    image_name: str|None,
+    target: str|None = None,
+) -> None:
+    if target is None:
+        target = port
+    if image_name is not None:
+        image_name = f'-t {image_name}'
+    else:
+        image_name = ''
+    cmd = f'docker build {image_name} --target {target} .'
     print(cmd)
     subprocess.run(shlex.split(cmd), check=True)
 
-
-def build_rp2_image(board: str, image_name: str):
-    target = 'rp2'
-    cmd = f'docker build -t {image_name} --build-arg MPY_BOARD={board} --target {target} .'
-    print(cmd)
-    subprocess.run(shlex.split(cmd), check=True)
 
 
 def validate_board(port: str, board: str|None) -> None:
@@ -53,18 +57,12 @@ def main():
     port_info = get_port_info()
     p = argparse.ArgumentParser()
     p.add_argument('--port', type=str, default='rp2', choices=port_info.keys())
-    p.add_argument('--board', type=str, default=None)
-    p.add_argument('--target', type=str, default='rp2', choices=['base', 'unix_tests', 'rp2'])
-    p.add_argument('--image-name', type=str, required=True)
+    p.add_argument('--target', type=str)
+    p.add_argument('--image-name', type=str, default=None)
     args = p.parse_args()
-    if args.port == 'unix':
-        build_unix_image(args.target, args.image_name)
-    elif args.port == 'rp2':
-        validate_board(args.port, args.board)
-        assert args.board is not None
-        build_rp2_image(args.board, args.image_name)
-    else:
-        raise ValueError(f'Unknown port: {args.port}')
+    build_port_image(
+        port=args.port, image_name=args.image_name, target=args.target,
+    )
     print(f'Built image: {args.image_name}')
 
 
