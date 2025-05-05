@@ -5,6 +5,9 @@ import shlex
 import argparse
 from pathlib import Path
 
+HERE = Path(__file__).parent.resolve()
+ROOT_DIR = HERE.parent
+BUILD_ROOT = ROOT_DIR / 'build'
 
 
 def build_image(port: str, target: str|None = None) -> str:
@@ -53,12 +56,20 @@ def build_firmware(
 
 def main():
     p = argparse.ArgumentParser(description="Build firmware for a specific board.")
-    p.add_argument('dest', type=Path, help='The destination directory to save the firmware.')
+    p.add_argument(
+        '-d', '--dest', type=Path, default=None,
+        help='The destination directory to save the firmware.' \
+             ' Defaults to build/<port>/<board>.',
+    )
     p.add_argument('--port', type=str, default='rp2', help='The port to build firmware for.')
     p.add_argument('--board', type=str, default='RPI_PICO_W', help='The board to build firmware for.')
     p.add_argument('--image', type=str, default=None, help='The Docker image to use for building firmware.')
     args = p.parse_args()
-    args.dest = args.dest.resolve()
+    if args.dest is None:
+        args.dest = BUILD_ROOT / args.port / args.board
+    else:
+        args.dest = args.dest.resolve()
+    args.dest.mkdir(parents=True, exist_ok=True)
     assert args.dest.is_dir(), f"Destination {args.dest} is not a directory."
     for p in args.dest.iterdir():
         if p.is_dir():
