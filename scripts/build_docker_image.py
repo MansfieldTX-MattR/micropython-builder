@@ -27,7 +27,7 @@ def build_port_image(
     port: str,
     image_name: str|None,
     target: str|None = None,
-) -> None:
+) -> str:
     if target is None:
         target = port
     if image_name is not None:
@@ -35,8 +35,25 @@ def build_port_image(
     else:
         image_name = ''
     cmd = f'docker build {image_name} --target {target} .'
-    print(cmd)
-    subprocess.run(shlex.split(cmd), check=True)
+    pr = subprocess.run(
+        shlex.split(cmd),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    )
+    if pr.returncode != 0:
+        print(f"Error building Docker image:\n{pr.stderr}\n")
+        raise RuntimeError(f"Failed to build Docker image for target {target}")
+
+    lines = pr.stderr.splitlines()
+    for line in lines:
+        line = line.strip()
+        if line.startswith('Successfully built '):
+            image_id = line.split(' ')[-1]
+            return image_id
+        elif 'writing image sha256:' in line:
+            image_id = line.split('writing image sha256:')[1].split(' ')[0]
+            assert len(image_id) == 64
+            return f'sha256:{image_id}'
+    raise RuntimeError("Failed to find built image id in output.")
 
 
 
@@ -60,10 +77,11 @@ def main():
     p.add_argument('--target', type=str)
     p.add_argument('--image-name', type=str, default=None)
     args = p.parse_args()
-    build_port_image(
+    image_id = build_port_image(
         port=args.port, image_name=args.image_name, target=args.target,
     )
     print(f'Built image: {args.image_name}')
+    print(f'Image ID: {image_id}')
 
 
 if __name__ == '__main__':
