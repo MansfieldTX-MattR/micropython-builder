@@ -71,13 +71,24 @@ def main():
         args.dest = args.dest.resolve()
     args.dest.mkdir(parents=True, exist_ok=True)
     assert args.dest.is_dir(), f"Destination {args.dest} is not a directory."
+    existing_files = set[Path]()
     for p in args.dest.iterdir():
         if p.is_dir():
             continue
         if p.stem not in ['firmware', 'build_metadata']:
             continue
-        print(f"Found file: {p}")
-        raise RuntimeError(f"Destination {args.dest} is not empty. Please remove the contents before building.")
+        existing_files.add(p)
+    if len(existing_files):
+        print(f'Destination {args.dest} is not empty:')
+        print('\n'.join(f'  - {p.name}' for p in existing_files))
+        print('')
+        result = input(f'Delete contents? (y/n): ')
+        if result.lower() != 'y':
+            print('Canelled')
+            return
+        for p in existing_files:
+            p.unlink()
+
     build_firmware(
         port=args.port, board=args.board,
         dest_dir=args.dest, image_name=args.image
