@@ -72,7 +72,7 @@ jobs:
         name: Get latest micropython version
         id: get-latest-mpy
         run: |
-          if [[ "${{ github.event.inputs.mpy-tag }}" == "latest" ]]; then
+          if [[ "${{ github.event_name }}" == "push" || "${{ github.event.inputs.mpy-tag }}" == "latest" ]]; then
             ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > latest_tag.txt
           else
             echo "${{ github.event.inputs.mpy-tag }}" > latest_tag.txt
