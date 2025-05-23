@@ -204,6 +204,8 @@ jobs:
           args.extend([
               f'--annotation "{anno}"' for anno in metadata['annotations']
           ])
+          if os.environ['DOCKER_PUSH_ALLOWED'] != 'true':
+              args.append('--dry-run')
           args_str = ' '.join(args)
           print(f'IMAGETOOLS_ARGS={args_str}')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
@@ -212,7 +214,7 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create --dry-run \
+          docker buildx imagetools create \
             ${{ steps.imagetools-args.outputs.IMAGETOOLS_ARGS }} \
             $(printf '${{ env.DOCKERHUB_REPO }}@sha256:%s ' *)
 
