@@ -213,7 +213,7 @@ jobs:
           ])
           args_str = ' '.join(args)
           print(f'IMAGETOOLS_ARGS={args_str}')
-          with open(os.environ['GITHUB_ENV'], 'a') as f:
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               print(f'IMAGETOOLS_ARGS={args_str}', file=f)
 
       - name: Create manifest list and push
