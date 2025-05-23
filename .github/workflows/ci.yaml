@@ -202,7 +202,7 @@ jobs:
               f'-t {tag}' for tag in metadata['tags']
           ]
           args.extend([
-              f'--annotation "{key}={value}"' for key, value in metadata['labels'].items()
+              f'--annotation "{key}={value}"' for key, value in metadata['annotations'].items()
           ])
           args_str = ' '.join(args)
           print(f'IMAGETOOLS_ARGS={args_str}')
