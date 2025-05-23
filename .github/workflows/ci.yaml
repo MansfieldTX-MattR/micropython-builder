@@ -68,18 +68,19 @@ jobs:
         with:
           python-version: 3.13
 
-      -
-        name: Get latest micropython version
-        id: get-latest-mpy
+      - name: Get micropython version
+        id: get-mpy-version
         run: |
+          ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > mpy_latest_tag.txt
+          echo "MICROPYTHON_LATEST_TAG=$(cat mpy_latest_tag.txt)" >> $GITHUB_ENV
+          echo "MICROPYTHON_LATEST_TAG=$(cat mpy_latest_tag.txt)" >> $GITHUB_OUTPUT
           if [[ "${{ github.event_name }}" == "push" || "${{ github.event.inputs.mpy-tag }}" == "latest" ]]; then
-            ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > latest_tag.txt
+            cp mpy_latest_tag.txt mpy_build_tag.txt
           else
-            echo "${{ github.event.inputs.mpy-tag }}" > latest_tag.txt
+            echo "${{ github.event.inputs.mpy-tag }}" > mpy_build_tag.txt
           fi
-          echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_ENV
-          echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_OUTPUT
-
+          echo "MICROPYTHON_VERSION=$(cat mpy_build_tag.txt)" >> $GITHUB_ENV
+          echo "MICROPYTHON_VERSION=$(cat mpy_build_tag.txt)" >> $GITHUB_OUTPUT
 
       - name: Docker meta
         id: meta
@@ -87,11 +88,11 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_REPO }}
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
+            type=semver,pattern={{version}},value=${{ steps.get-mpy-version.outputs.MICROPYTHON_VERSION }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.get-mpy-version.outputs.MICROPYTHON_VERSION }}
             type=sha
           flavor: |
-            latest=auto
+            latest=${{ steps.get-mpy-version.outputs.MICROPYTHON_LATEST_TAG == steps.get-mpy-version.outputs.MICROPYTHON_VERSION }}
             suffix=-${{ matrix.image-name }},onlatest=true
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
@@ -103,7 +104,7 @@ jobs:
         with:
           build-args: |
             MPY_PORT=${{ matrix.mpy-port }}
-            MICROPYTHON_VERSION=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
+            MICROPYTHON_VERSION=${{ steps.get-mpy-version.outputs.MICROPYTHON_VERSION }}
             MICROPYTHON_REPO=${{ env.MICROPYTHON_REPO }}
           context: .
           file: Dockerfile
@@ -116,4 +117,4 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:${{ env.build_cache_tag }}
           cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:${{ env.build_cache_tag }},mode=max
         env:
-          build_cache_tag: buildcache-${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}-${{ matrix.image-name }}
+          build_cache_tag: buildcache-${{ steps.get-mpy-version.outputs.MICROPYTHON_VERSION }}-${{ matrix.image-name }}
