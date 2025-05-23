@@ -124,6 +124,7 @@ jobs:
           file: Dockerfile
           target: ${{ matrix.image-target }}
           platforms: linux/${{ matrix.arch }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
