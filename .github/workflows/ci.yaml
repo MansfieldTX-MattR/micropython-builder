@@ -113,5 +113,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
-          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:buildcache,mode=max
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:${{ env.build_cache_tag }}
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:${{ env.build_cache_tag }},mode=max
+        env:
+          build_cache_tag: buildcache-${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}-${{ matrix.image-name }}
