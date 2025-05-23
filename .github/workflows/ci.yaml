@@ -126,7 +126,7 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           tags: ${{ env.DOCKERHUB_REPO }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=${{ env.DOCKER_PUSH_ALLOWED }}
 
       - name: Export digest
         run: |
