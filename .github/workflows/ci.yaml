@@ -24,7 +24,7 @@ on:
 env:
   GH_REPO: ${{ github.repository }}
   MICROPYTHON_REPO: https://github.com/micropython/micropython.git
-  DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/micropython-builder
+  DOCKERHUB_REPO: mattrmansfieldtx/micropython-builder
   DOCKER_PUSH_ALLOWED: ${{ github.event.inputs.allow-push == 'true' }}
 
 jobs:
