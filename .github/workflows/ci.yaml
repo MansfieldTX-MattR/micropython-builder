@@ -48,12 +48,12 @@ jobs:
           - mpy-port: unix
             image-target: unix
             image-name: unix
-            os: ubuntu-22.04-arm64
+            os: ubuntu-22.04-arm
             arch: arm64
           - mpy-port: rp2
             image-target: rp2
             image-name: rp2
-            os: ubuntu-22.04-arm64
+            os: ubuntu-22.04-arm
             arch: arm64
 
     outputs:
