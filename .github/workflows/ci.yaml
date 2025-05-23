@@ -9,11 +9,18 @@ on:
       - 'scripts/container/*'
       - '.github/workflows/ci.yaml'
   workflow_dispatch:
+    inputs:
+      allow-push:
+        description: 'Allow push to Docker Hub'
+        required: true
+        default: false
+        type: boolean
 
 env:
   GH_REPO: ${{ github.repository }}
   MICROPYTHON_REPO: https://github.com/micropython/micropython.git
   DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/micropython-builder
+  DOCKER_PUSH_ALLOWED: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/main' || github.event.inputs.allow-push == 'true' }}
 
 jobs:
   build:
@@ -93,7 +100,7 @@ jobs:
           file: Dockerfile
           target: ${{ matrix.image-target }}
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ env.DOCKER_PUSH_ALLOWED }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
