@@ -15,6 +15,11 @@ on:
         required: true
         default: false
         type: boolean
+      mpy-tag:
+        description: 'Micropython tag to build'
+        required: true
+        default: 'latest'
+        type: string
 
 env:
   GH_REPO: ${{ github.repository }}
@@ -67,7 +72,11 @@ jobs:
         name: Get latest micropython version
         id: get-latest-mpy
         run: |
-          ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > latest_tag.txt
+          if [[ "${{ github.event.inputs.mpy-tag }}" == "latest" ]]; then
+            ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > latest_tag.txt
+          else
+            echo "${{ github.event.inputs.mpy-tag }}" > latest_tag.txt
+          fi
           echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_ENV
           echo "MICROPYTHON_VERSION=$(cat latest_tag.txt)" >> $GITHUB_OUTPUT
 
