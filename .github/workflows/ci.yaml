@@ -205,8 +205,10 @@ jobs:
           args = [
               f'-t {tag}' for tag in metadata['tags']
           ]
+          anno_prefixes = ['index:', 'manifest-descriptor:']
           args.extend([
-              f'--annotation "{anno}"' for anno in metadata['annotations']
+              f'--annotation "{anno}"'
+              for anno in metadata['annotations'] if any(anno.startswith(prefix) for prefix in anno_prefixes)
           ])
           if os.environ['DOCKER_PUSH_ALLOWED'] != 'true':
               args.append('--dry-run')
