@@ -127,6 +127,10 @@ jobs:
           tags: ${{ env.DOCKERHUB_REPO }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO }}:${{ env.build_cache_tag }}
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO }}:${{ env.build_cache_tag }},mode=max
+        env:
+          build_cache_tag: buildcache-${{ steps.get-mpy-version.outputs.MICROPYTHON_VERSION }}-${{ matrix.image-name }}-${{ matrix.arch }}
 
       - name: Export digest
         run: |
