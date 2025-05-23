@@ -91,7 +91,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.get-latest-mpy.outputs.MICROPYTHON_VERSION }}
             type=sha
           flavor: |
-            latest=true
+            latest=auto
             suffix=-${{ matrix.image-name }},onlatest=true
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
