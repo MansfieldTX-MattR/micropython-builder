@@ -90,7 +90,7 @@ ENV PICOTOOL_SETUP_ROOT=${HOME}/picotool-setup
 ENV PICO_SDK_PATH=${PROJECT_ROOT}/lib/pico-sdk
 WORKDIR ${PROJECT_ROOT}
 RUN git submodule update --init --depth 1 lib/mbedtls
-RUN git submodule update --init --depth 1 lib/pico-sdk
+RUN git clone --depth 1 https://github.com/raspberrypi/pico-sdk.git ${PICO_SDK_PATH}
 RUN git submodule update --init --depth 1 lib/tinyusb
 RUN git clone --depth 1 --single-branch https://github.com/raspberrypi/picotool.git ${PICOTOOL_SETUP_ROOT}/picotool
 RUN mkdir -p ${PICOTOOL_SETUP_ROOT}/picotool/build
