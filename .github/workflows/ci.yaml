@@ -191,13 +191,35 @@ jobs:
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
+      - name: Format imagetools args
+        id: imagetools-args
+        shell: python
+        env:
+          DIGEST_DIR: ${{ runner.temp }}/digests
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          digest_dir = Path(os.environ['DIGEST_DIR'])
+          metadata = json.loads(os.environ['DOCKER_METADATA_OUTPUT_JSON'])
+          args = [
+              f'-t {tag}' for tag in metadata['tags']
+          ]
+          args.extend([
+              f'--annotation "{key}={value}"' for key, value in metadata['labels'].items()
+          ])
+          args.extend([
+              f'-f {digest_file}' for digest_file in digest_dir.glob('sha256:*')
+          ])
+          args_str = ' '.join(args)
+          print(f'IMAGETOOLS_ARGS={args_str}')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              print(f'IMAGETOOLS_ARGS={args_str}', file=f)
+
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create --dry-run \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(jq -cr '.annotations | map("--annotation \"" + . + "\"") | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.DOCKERHUB_REPO }}@sha256:%s ' *)
+          docker buildx imagetools create --dry-run ${{ steps.imagetools-args.outputs.IMAGETOOLS_ARGS }}
 
       - name: Inspect image
         run: |
