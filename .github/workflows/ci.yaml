@@ -194,22 +194,15 @@ jobs:
       - name: Format imagetools args
         id: imagetools-args
         shell: python
-        env:
-          DIGEST_DIR: ${{ runner.temp }}/digests
         run: |
           import json
           import os
-          from pathlib import Path
-          digest_dir = Path(os.environ['DIGEST_DIR'])
           metadata = json.loads(os.environ['DOCKER_METADATA_OUTPUT_JSON'])
           args = [
               f'-t {tag}' for tag in metadata['tags']
           ]
           args.extend([
               f'--annotation "{key}={value}"' for key, value in metadata['labels'].items()
-          ])
-          args.extend([
-              f'-f {digest_file}' for digest_file in digest_dir.glob('sha256:*')
           ])
           args_str = ' '.join(args)
           print(f'IMAGETOOLS_ARGS={args_str}')
@@ -219,7 +212,9 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create --dry-run ${{ steps.imagetools-args.outputs.IMAGETOOLS_ARGS }}
+          docker buildx imagetools create --dry-run \
+            ${{ steps.imagetools-args.outputs.IMAGETOOLS_ARGS }} \
+            $(printf '${{ env.DOCKERHUB_REPO }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
