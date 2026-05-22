@@ -8,6 +8,13 @@ on:
       - 'scripts/latest_repo_tag.py'
       - 'scripts/container/*'
       - '.github/workflows/ci.yaml'
+  pull_request:
+    branches: main
+    paths:
+      - 'Dockerfile'
+      - 'scripts/latest_repo_tag.py'
+      - 'scripts/container/*'
+      - '.github/workflows/ci.yaml'
   workflow_dispatch:
     inputs:
       allow-push:
