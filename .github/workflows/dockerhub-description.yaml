@@ -1,11 +1,5 @@
 name: Update Docker Hub Description
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - README.md
-      - .github/workflows/dockerhub-description.yaml
   workflow_dispatch:
 
 env:
