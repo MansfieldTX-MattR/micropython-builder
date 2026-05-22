@@ -144,7 +144,7 @@ jobs:
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.image-name }}-${{ steps.platform-pair.outputs.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
@@ -170,7 +170,7 @@ jobs:
       MICROPYTHON_VERSION: ${{ needs.build.outputs.MICROPYTHON_VERSION }}
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-${{ matrix.image-name }}-*
