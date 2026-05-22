@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 from __future__ import annotations
+"""Helpers for reading and formatting version tags from a remote git repository."""
 import subprocess
 import shlex
 import argparse
 
 
 class Version:
+    """Comparable semantic version wrapper parsed from git tag strings."""
     suffix: str|None
     version_tuple: tuple[int, int, int]
     def __init__(self, version: str) -> None:
@@ -40,6 +42,11 @@ class Version:
     def is_release(self) -> bool:
         return self.suffix is None
 
+    @property
+    def semver(self) -> str:
+        """Return the normalized version as major.minor.patch."""
+        return f'{self.major}.{self.minor}.{self.micro}'
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Version):
             return NotImplemented
@@ -73,22 +80,68 @@ class Version:
 
 
 def get_latest_tag(repo_url: str) -> str:
+    """Return the newest release tag for the given repository URL."""
+    tags = get_release_tags(repo_url)
+    if not tags:
+        raise RuntimeError(f'No release tags found for repository: {repo_url}')
+    return str(tags[0])
+
+
+def get_remote_tags_output(repo_url: str) -> str:
+    """Run git ls-remote and return raw tag lines for a repository."""
     cmd = f'git ls-remote --tags --refs {repo_url}'
-    r = subprocess.run(shlex.split(cmd), capture_output=True, text=True)
+    r = subprocess.run(shlex.split(cmd), capture_output=True, text=True, check=True)
+    return r.stdout
+
+
+def parse_release_tags(ls_remote_output: str) -> list[Version]:
+    """Parse raw ls-remote output, keep release tags only, and sort descending."""
     tags = [
-        Version(line.split('refs/tags/')[-1]) for line in r.stdout.splitlines() if line
+        Version(line.split('refs/tags/')[-1])
+        for line in ls_remote_output.splitlines()
+        if line and 'refs/tags/' in line
     ]
-    tags = [
-        tag for tag in tags if tag.is_release
-    ]
-    latest = max(tags)
-    return str(latest)
+    tags = [tag for tag in tags if tag.is_release]
+    return sorted(tags, reverse=True)
+
+
+def get_release_tags(repo_url: str, limit: int | None = None) -> list[Version]:
+    """Fetch and parse release tags from a repo, optionally limited in count."""
+    tags = parse_release_tags(get_remote_tags_output(repo_url))
+    if limit is not None:
+        tags = tags[:limit]
+    return tags
 
 
 def main():
+    """CLI entry point for printing latest or enumerated release tags."""
     p = argparse.ArgumentParser()
     p.add_argument('-r', '--repo', type=str, default='https://github.com/micropython/micropython.git')
+    p.add_argument(
+        '--list-release-tags',
+        action='store_true',
+        help='List release tags in descending order (latest first), one per line.',
+    )
+    p.add_argument(
+        '--limit',
+        type=int,
+        default=None,
+        help='Limit number of tags returned by --list-release-tags.',
+    )
+    p.add_argument(
+        '--semver',
+        action='store_true',
+        help='When listing tags, print in major.minor.patch format without a leading v.',
+    )
     args = p.parse_args()
+    if args.list_release_tags:
+        tags = get_release_tags(args.repo, limit=args.limit)
+        for tag in tags:
+            if args.semver:
+                print(tag.semver)
+            else:
+                print(str(tag))
+        return
     latest_tag = get_latest_tag(args.repo)
     print(str(latest_tag))
 
