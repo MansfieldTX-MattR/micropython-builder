@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 env:
-    DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/micropython-builder
+    DOCKERHUB_REPO: ${{ vars.DOCKERHUB_USERNAME }}/micropython-builder
 
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     - name: Docker Hub Description
       uses: peter-evans/dockerhub-description@v4
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        username: ${{ vars.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         repository: ${{ env.DOCKERHUB_REPO }}
         short-description: ${{ github.event.repository.description }}
