@@ -29,6 +29,8 @@ on:
         type: string
 
 env:
+  # Use the workflow_dispatch mpy-tag input if triggered from it, otherwise default to "latest"
+  MYPY_TAG: ${{ github.event.inputs.mpy-tag || 'latest' }}
   GH_REPO: ${{ github.repository }}
   MICROPYTHON_REPO: https://github.com/micropython/micropython.git
   DOCKERHUB_REPO: mattrmansfieldtx/micropython-builder
@@ -98,10 +100,10 @@ jobs:
           ./scripts/latest_repo_tag.py -r ${{ env.MICROPYTHON_REPO }} > mpy_latest_tag.txt
           echo "MICROPYTHON_LATEST_TAG=$(cat mpy_latest_tag.txt)" >> $GITHUB_ENV
           echo "MICROPYTHON_LATEST_TAG=$(cat mpy_latest_tag.txt)" >> $GITHUB_OUTPUT
-          if [[ "${{ github.event_name }}" == "push" || "${{ github.event.inputs.mpy-tag }}" == "latest" ]]; then
+          if [[ "${{ env.MYPY_TAG }}" == "latest" ]]; then
             cp mpy_latest_tag.txt mpy_build_tag.txt
           else
-            echo "${{ github.event.inputs.mpy-tag }}" > mpy_build_tag.txt
+            echo "${{ env.MYPY_TAG }}" > mpy_build_tag.txt
           fi
           echo "MICROPYTHON_VERSION=$(cat mpy_build_tag.txt)" >> $GITHUB_ENV
           echo "MICROPYTHON_VERSION=$(cat mpy_build_tag.txt)" >> $GITHUB_OUTPUT
